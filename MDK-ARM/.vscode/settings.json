@@ -1,0 +1,25 @@
+{
+    "files.associations": {
+        "freertos.h": "c",
+        "queue.h": "c",
+        "my_bluetooth.h": "c",
+        "my_maincode.h": "c",
+        "font.h": "c",
+        "stm32f1xx_hal.h": "c",
+        "my_adc.h": "c",
+        "lcd_api.h": "c",
+        "oledfont.h": "c",
+        "lcd.h": "c",
+        "spi.h": "c",
+        "main.h": "c",
+        "stdlib.h": "c",
+        "cmsis_os.h": "c",
+        "stdio.h": "c",
+        "event_groups.h": "c",
+        "bmp.h": "c",
+        "my_usart.h": "c",
+        "semphr.h": "c",
+        "*.tcc": "c",
+        "task.h": "c"
+    }
+}
