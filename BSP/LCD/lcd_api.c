@@ -56,21 +56,31 @@ void Update_LCD_Install_2(void)
             if (LCD_Mode[2] != 0)
             {
 
-                  LCD_ShowString(0, 16 * 0, "MOD:", BLACK, BROWN, 16, 0);
-                  LCD_ShowIntNum(32, 16 * 0, car_modl, 2, BLACK, BROWN, 16);
+                  LCD_ShowString(0, 16 * 0, "MOD", BLACK, BROWN, 16, 0);
+				  LCD_ShowString(24, 16 * 0, ":", BLACK, BROWN, 16, 0);
+
+                  LCD_ShowIntNum(32, 16 * 0, new_car_modl, 2, BLACK, BROWN, 16);
             }
       }
       else
       {
             if (LCD_Mode[2] == 1)
             {
-                  LCD_ShowString(0, 16 * 0, "Mix:", BLACK, BROWN, 16, 0);
-                  LCD_ShowString(0, 16 * 1, "Min:", BROWN, BLACK, 16, 0);
+                  LCD_ShowString(0, 16 * 0, "Max", BLACK, BROWN, 16, 0);
+				                  LCD_ShowString(24, 16 * 0, ":", BLACK, BROWN, 16, 0);
+
+                  LCD_ShowString(0, 16 * 1, "Min", BROWN, BLACK, 16, 0);
+                  LCD_ShowString(24, 16 * 1, ":", BROWN, BLACK, 16, 0);
+
             }
             else if (LCD_Mode[2] == 2)
             {
-                  LCD_ShowString(0, 16 * 0, "Mix:", BROWN, BLACK, 16, 0);
-                  LCD_ShowString(0, 16 * 1, "Min:", BLACK, BROWN, 16, 0);
+                  LCD_ShowString(0, 16 * 0, "Max", BROWN, BLACK, 16, 0);
+				                  LCD_ShowString(24, 16 * 0, ":", BROWN, BLACK, 16, 0);
+
+                  LCD_ShowString(0, 16 * 1, "Min", BLACK, BROWN, 16, 0);
+				                  LCD_ShowString(24, 16 * 1, ":", BLACK, BROWN, 16, 0);
+
             }
 
             switch (LCD_Mode[1])
@@ -162,8 +172,10 @@ void Update_LCD_Environment(void)
       LCD_ShowString(32, 16 * 3, ":", BROWN, BLACK, 16, 0);
       LCD_ShowIntNum(40, 16 * 3, light, 1, BROWN, BLACK, 16);
 
-      LCD_ShowString(0, 16 * 4, "CAR:", BROWN, BLACK, 16, 0); // 小车模式
-      LCD_ShowIntNum(32, 16 * 4, new_car_modl, 1, BROWN, BLACK, 16);
+      LCD_ShowString(0, 16 * 4, "CAR", BROWN, BLACK, 16, 0); // 小车模式
+      LCD_ShowString(24, 16 * 4, ":", BROWN, BLACK, 16, 0); // 小车模式
+
+      LCD_ShowIntNum(32, 16 * 4, car_modl, 1, BROWN, BLACK, 16);
 }
 void Update_LCD_CAR(void)
 {
@@ -299,8 +311,8 @@ void Update_LCD(void)
             }
             LCD_ShowPicture(0, 72, 16, 23, gImage_left);
             LCD_ShowPicture(110, 72, 16, 23, gImage_right);
-            LCD_ShowChinese(28, 66, 3, BLACK, WHITE, 32, 0);
-            LCD_ShowChinese(64, 66, 4, BLACK, WHITE, 32, 0); // 小车
+            LCD_ShowChinese(28, 66, 4, BLACK, WHITE, 32, 0);
+            LCD_ShowChinese(64, 66, 3, BLACK, WHITE, 32, 0); // 小车
             break;
       case 3:
             // 设置

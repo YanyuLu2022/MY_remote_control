@@ -1140,16 +1140,6 @@
               <FilePath>..\BSP\message\MY_bluetooth.h</FilePath>
             </File>
             <File>
-              <FileName>My_ADC.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\BSP\rocker\My_ADC.c</FilePath>
-            </File>
-            <File>
-              <FileName>My_ADC.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\BSP\rocker\My_ADC.h</FilePath>
-            </File>
-            <File>
               <FileName>MY_Usart.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\BSP\SYStem\MY_Usart.c</FilePath>
@@ -1198,6 +1188,16 @@
               <FileName>key.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\BSP\KEY\key.h</FilePath>
+            </File>
+            <File>
+              <FileName>My_Rocker.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\BSP\rocker\My_Rocker.c</FilePath>
+            </File>
+            <File>
+              <FileName>My_Rocker.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\BSP\rocker\My_Rocker.h</FilePath>
             </File>
           </Files>
         </Group>

@@ -10,6 +10,8 @@
 #include "MY_bluetooth.h"
 #include "LCD_API.h"
 #include "key.h"
+#include "my_Rocker.h"
+
 #define true 1
 #define false 0
 #define T_MAX 60 // 温度最大值
@@ -23,6 +25,8 @@
 static StaticTask_t BlueRxThread; // 接收代码块
 static StaticTask_t BlueTxThread; // 发送代码块
 static StaticTask_t LCDThread;    // LCD代码块
+static StaticTask_t RockerThread; // 遥感代码块
+// static StaticTask_t LCDThread;    // LCD代码块
 
 StaticTask_t Task_MainCode; // 主任务句柄
 
@@ -32,20 +36,19 @@ static QueueHandle_t BlueRx_Queue = NULL; // 蓝牙读取队列句柄
 static QueueHandle_t BlueTx_Queue = NULL; // 蓝牙读取队列句柄
 static QueueHandle_t LCD_Queue = NULL;    // LCD队列句柄
 static QueueHandle_t KEY_Queue = NULL;    // KEY队列句柄
+static QueueHandle_t Rocker_Queue = NULL; // 遥感句柄
 static QueueHandle_t g_xQueueStrInput;    // 队列集句柄
 
-
-
-uint8_t air = 0;      // 空气质量
-uint8_t light = 0;    // 亮度
+uint8_t air = 0;   // 空气质量
+uint8_t light = 0; // 亮度
 
 uint8_t H = 0;        // 湿度
 uint8_t T = 0;        // 温度
 uint8_t led = 0;      // LED灯状态
 uint8_t car_modl = 0; // 小车状态
 
-uint8_t new_car_modl = 0;
-uint8_t new_directive = 0;
+uint8_t new_car_modl = 0;//新小车状态
+uint8_t new_directive = 0;//新小车移动状态
 
 uint8_t air_Max = 2;                // 预警最大空气质量
 uint8_t air_Min = 1;                // 预警最小空气质量
@@ -58,6 +61,7 @@ uint8_t T_Min = 10;                 // 预警最小温度
 uint8_t location[4] = {1, 0, 0, 0}; //
 uint8_t position = 0;               // 层数
 
+uint8_t Rocker;
 
 void Updata_LCD_Data(uint8_t Set);
 void Set_LCDQueue(void)
@@ -77,10 +81,49 @@ void Read_KEYRx_Queue(void)
     for (int i = 0; i < key_num; i++)
     {
         if (KEY.Read_Key[i] == 1)
-            Updata_LCD_Data(i);
+        {
+            if (i != 6)
+            {
+                Updata_LCD_Data(i);
+            }
+            else
+            {
+                Updata_LCD_Data(4);
+            }
+        }
     }
 
     Set_LCDQueue();
+}
+void Read_Rocker_Queue(void)
+{
+    Rocker_Queue_Data RockerRx_Data = {0};
+    xQueueReceive(Rocker_Queue, &RockerRx_Data, 0);
+
+    switch (RockerRx_Data.ReadRocker)
+    {
+    case 1:
+        Updata_LCD_Data(0);
+        Set_LCDQueue();
+        break;
+    case 2:
+        Updata_LCD_Data(1);
+        Set_LCDQueue();
+
+        break;
+    case 3:
+        Updata_LCD_Data(2);
+        Set_LCDQueue();
+
+        break;
+    case 4:
+        Updata_LCD_Data(3);
+        Set_LCDQueue();
+
+        break;
+    default:
+        break;
+    }
 }
 void Read_BlueRx_Queue(void)
 {
@@ -91,37 +134,39 @@ void Read_BlueRx_Queue(void)
     H = BlueRx_Data.H;
     T = BlueRx_Data.T;
     led = BlueRx_Data.led;
-    if(car_modl != BlueRx_Data.car_modl )
-    new_car_modl = BlueRx_Data.car_modl;
+
     car_modl = BlueRx_Data.car_modl;
 }
-void Write_BlueTx(uint8_t directive,uint8_t mod)
+void Write_BlueTx(uint8_t directive, uint8_t mod)
 {
     BlueTx_Struct BlueTx_Data;
     BlueTx_Data.directive = directive;
     BlueTx_Data.mod = mod;
-	BlueTx_Data.led = 0;
-	BlueTx_Data.music = 0;
+    BlueTx_Data.led = 0;
+    BlueTx_Data.music = 0;
     xQueueSend(BlueTx_Queue, &BlueTx_Data, 0);
-
 }
 void MainCode_Thread(void *argument)
 {
     Blue_Init();
     LCDapi_init();
     KEY_Init();
+    My_Rocker_Init();
     BlueRx_Queue = ReBlueRx_QueueStruct();
     BlueTx_Queue = ReBlueTx_QueueStruct();
     LCD_Queue = ReLCD_QueueStruct();
     KEY_Queue = ReKEY_QueueStruct();
-
-    g_xQueueStrInput = xQueueCreateSet(BlueRxQueueLenght + KEYQueueLenght);
+    Rocker_Queue = ReRocker_QueueStruct();
+    g_xQueueStrInput = xQueueCreateSet(BlueRxQueueLenght + KEYQueueLenght + READCQueueLenght);
     xQueueAddToSet(BlueRx_Queue, g_xQueueStrInput); // 将队列添加进队列集
     xQueueAddToSet(KEY_Queue, g_xQueueStrInput);    // 将队列添加进队列集
+    xQueueAddToSet(Rocker_Queue, g_xQueueStrInput); // 将队列添加进队列集
     // 开启蓝牙接收
     BlueRx_Thread_Start(&BlueRxThread, NULL);
     // 开启蓝牙发送
     BlueTx_Thread_Start(&BlueTxThread, NULL);
+
+    Rocker_Thread_Start(&RockerThread, NULL);
 
     LCD_Thread_Start(&LCDThread, NULL);
 
@@ -140,6 +185,10 @@ void MainCode_Thread(void *argument)
         {
 
             Read_KEYRx_Queue();
+        }
+        if (IntupQueue == Rocker_Queue)
+        {
+            Read_Rocker_Queue();
         }
         /* code */
     }
@@ -169,6 +218,12 @@ void UpdateBoundary(uint8_t *value, uint8_t step, uint8_t min, uint8_t max, uint
 }
 void Updata_LCD_Data(uint8_t Set) // 修改页面
 {
+    if (position == 0)
+    {
+        location[1] = 0;
+        location[2] = 0;
+        location[3] = 0;
+    }
     switch (Set)
     {
     case 0: // 上
@@ -205,12 +260,13 @@ void Updata_LCD_Data(uint8_t Set) // 修改页面
             else if (location[1] == 5)
             {
                 location[2] = 1;
-                new_car_modl = car_modl >= 4 ? 4 : (car_modl + 1);
+                new_car_modl = new_car_modl >= 4 ? 1 : (new_car_modl + 1);
             }
-        }else if(location[0] == 2 && position > 0)
+        }
+        else if (location[0] == 2 && position > 0)
         {
             new_directive = 2;
-            Write_BlueTx(new_directive,0);
+            Write_BlueTx(new_directive, 0);
         }
 
         else
@@ -253,12 +309,13 @@ void Updata_LCD_Data(uint8_t Set) // 修改页面
             else if (location[1] == 5)
             {
                 location[2] = 1;
-                new_car_modl = car_modl == 0 ? 0 : (car_modl - 1);
+                new_car_modl = new_car_modl == 1 ? 4 : (new_car_modl - 1);
             }
-        }else  if(location[0] == 2 && position > 0)
+        }
+        else if (location[0] == 2 && position > 0)
         {
             new_directive = 3;
-            Write_BlueTx(new_directive,0);
+            Write_BlueTx(new_directive, 0);
         }
         else
         {
@@ -268,34 +325,40 @@ void Updata_LCD_Data(uint8_t Set) // 修改页面
 
         // 左
     case 2:
-    if(location[0] == 2 && position > 0)
+        if (location[0] == 2 && position > 0)
         {
             new_directive = 4;
-            Write_BlueTx(new_directive,0);
-        }else
-        location[position]--;
+            Write_BlueTx(new_directive, 0);
+        }
+        else
+            location[position]--;
         break;
         // 右
     case 3:
-    if(location[0] == 2 && position > 0)
+        if (location[0] == 2 && position > 0)
         {
             new_directive = 5;
-            Write_BlueTx(new_directive,0);
-        }else
-        location[position]++;
+            Write_BlueTx(new_directive, 0);
+        }
+        if (location[position] == 5)
+        {
+            if(position == 3)
+            Write_BlueTx(0, new_car_modl);
+            if(position == 2)
+            new_car_modl = car_modl;    
+            
+        }
+        else
+            location[position]++;
         break;
         // 确定
     case 4:
-        position = (position + 1) > 3 ? 3 : (position + 1);
+        position++;
 
-        
         break;
         // 返回
     case 5:
-        if(position == 3 && location[position] == 5)
-        {
-            Write_BlueTx(0,new_car_modl);
-        }
+
         location[position] = 0;
 
         position = position == 0 ? 0 : --position;
@@ -314,16 +377,16 @@ void Updata_LCD_Data(uint8_t Set) // 修改页面
         if (location[0] == 1)
         {
             location[1] %= 2;
-            position = position > 1 ? 1 : position;
+            position = position > 1 ? 0 : position;
         }
         if (location[0] == 2)
         {
             location[1] %= 2;
-            position = position > 1 ? 1 : position;
+            position = position > 1 ? 0 : position;
         }
         if (location[0] == 3)
         {
-            position = position > 3 ? 3 : position;
+            position = position > 3 ? 0 : position;
             location[1] = location[1] == 0 ? 5 : location[1];
             location[1] %= 6;
             location[1] = location[1] == 0 ? 1 : location[1];

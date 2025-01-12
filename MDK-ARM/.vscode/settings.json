@@ -20,6 +20,8 @@
         "my_usart.h": "c",
         "semphr.h": "c",
         "*.tcc": "c",
-        "task.h": "c"
+        "task.h": "c",
+        "string.h": "c",
+        "gpio.h": "c"
     }
 }

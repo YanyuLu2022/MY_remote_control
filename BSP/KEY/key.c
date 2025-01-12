@@ -29,7 +29,7 @@ void Update_Key(void)
     key_state[3] = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_6);
     key_state[4] = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_7);
     key_state[5] = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_8);
-
+    key_state[6] = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_6);
     for (int i = 0; i < key_num; i++)
     {
 

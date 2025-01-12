@@ -1,6 +1,6 @@
 #include "stm32f1xx_hal.h"
 
-#define key_num 6
+#define key_num 7
 #define KEYQueueLenght 10
 
 typedef struct
